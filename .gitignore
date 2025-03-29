@@ -1,2 +1,28 @@
-/node_module
-/.env
+# Node modules directory
+node_modules/
+
+# Environment variables file (contains sensitive info)
+.env
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Build output
+dist/
+build/
+
+# Vercel settings
+.vercel/
+
+# Optional: npm-debug.log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

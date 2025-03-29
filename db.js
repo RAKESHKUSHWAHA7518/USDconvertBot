@@ -215,9 +215,14 @@
 
 
 const mongoose = require('mongoose');
-
+require('dotenv').config();
+console.log(process.env.DATABASE);
+const mongoUri = process.env.DATABASE;
+if (!mongoUri) {
+  throw new Error("DATABASE is not defined in environment variables.");
+}
 // Connect to the MongoDB database for the trading bot
-mongoose.connect("mongodb+srv://collegepdf7518:TuxtOtelZHNSDsLW@cluster0.uswk3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
+mongoose.connect(process.env.DATABASE, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });

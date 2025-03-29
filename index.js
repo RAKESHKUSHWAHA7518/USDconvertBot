@@ -1,5 +1,7 @@
+require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const token = '7596897956:AAF61ybdT5B6BMHdWbCnxqygVUQ4Xt5BolI'; // Replace with your actual token
+// const token = '7596897956:AAF61ybdT5B6BMHdWbCnxqygVUQ4Xt5BolI'; // Replace with your actual token
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 const Order = require('./db');
 const selectedOrders = require('./store'); // Update the path if needed
