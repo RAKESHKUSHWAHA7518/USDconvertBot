@@ -1043,13 +1043,19 @@ async function sellHandler(bot, msg, match) {
     respondedAt: new Date(),
   });
 
-  const responseText = `
+//   const responseText = `
+// ✅ Order #${newSellOrder.orderNumber}
+// Seller @${msg.from.username} accepted your order for ${amount} USDT at ₹${lastValue.price} per USDT.
+// INR: ₹${amount * lastValue.price}
+// Please transfer USDT to the buyer's wallet and send your transaction proof using /paid <transaction_token>.
+//   `;
+//   bot.sendMessage(msg.chat.id, responseText);
+const responseText = `
 ✅ Order #${newSellOrder.orderNumber}
-Seller @${msg.from.username} accepted your order for ${amount} USDT at ₹${lastValue.price} per USDT.
-INR: ₹${amount * lastValue.price}
-Please transfer USDT to the buyer's wallet and send your transaction proof using /paid <transaction_token>.
-  `;
-  bot.sendMessage(msg.chat.id, responseText);
+Seller @${msg.from.username} accepted your  order for ${amount} USDT at ₹${lastValue.price} per USDT. INR: ₹${amount*lastvalue.price} 
+Please transfer USDT to the buyer's wallet (USDT TRC20) and Address:TUwxkYU7hJZCnqi1rCgZeBuDxQvuzC2Leq send your transaction proof using /paid.
+    `;
+    bot.sendMessage(msg.chat.id, responseText);
 }
 
 // Handler to confirm USDT transaction and trigger INR payment.
@@ -1176,7 +1182,7 @@ console.log(orderId);
   if (isNaN(paidAmount) || paidAmount <= 0) {
     bot.sendMessage(
       msg.chat.id,
-      `Order #${orderDetails.orderNumber} - Please enter a valid amount. Example: /paid 5000`
+      `Order #${orderDetails.orderNumber} - Please enter a valid amount. Example: /confirm 5000`
     );
     return;
   }
