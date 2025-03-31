@@ -1335,5 +1335,6 @@ module.exports = {
   sellerConfirmHandler,
   upiHandler,
   bankHandler,
-  createOrder
+  createOrder,
+  getCompositeKey
 };

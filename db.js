@@ -215,6 +215,7 @@
 
 
 const mongoose = require('mongoose');
+const { getCompositeKey } = require('./commands');
 require('dotenv').config();
 console.log(process.env.DATABASE);
 const mongoUri = process.env.DATABASE;
@@ -260,7 +261,7 @@ const CounterSchema = new mongoose.Schema({
 });
 const Counter = mongoose.model('Counter', CounterSchema);
 
-const OrderSchema = new mongoose.Schema({
+const OrderSchemas = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
   orderNumber: { type: String }, // if applicable
   totalAmount: { type: Number, required: true },
@@ -269,7 +270,7 @@ const OrderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Orders = mongoose.model('Order', OrderSchema);
+const Orders = mongoose.model('Order', OrderSchemas);
 
 
 const SelectedOrderSchema = new mongoose.Schema({
@@ -279,6 +280,70 @@ const SelectedOrderSchema = new mongoose.Schema({
 
 const SelectedOrder = mongoose.model('SelectedOrder', SelectedOrderSchema);
 
+
+/**
+ * Save an order and the selected order mapping into the database.
+ *
+* @param {string} orderId - Unique ID of the order.
+ * @param {number} totalAmount - Total amount for the order.
+ * @param {string|number} chatId - Chat ID.
+ * @param {string|number} userId - User ID.
+ * @param {string} orderNumber - Order number (optional).
+ */
+async function createOrder(orderId, totalAmount, chatId, userId, orderNumber) {
+  try {
+    // Create and save the order document.
+    const order = new Order({
+      orderId,
+      orderNumber,
+      totalAmount,
+      amountPaid: 0,
+      status: 'created',
+    });
+    await Orders.save();
+    console.log('Order saved:', order);
+
+    // Create and save the selected order mapping.
+    const compositeKey = getCompositeKey(chatId, userId);
+    const selectedOrder = new SelectedOrder({
+      compositeKey,
+      orderId,
+    });
+    await selectedOrder.save();
+    console.log('Selected order mapping saved:', selectedOrder);
+  } catch (error) {
+    console.error('Error saving order:', error);
+  }
+}
+
+/**
+ * Retrieve an order by its orderId.
+ */
+async function getOrderById(orderId) {
+  try {
+    return await Order.findOne({ orderId });
+  } catch (error) {
+    console.error('Error retrieving order:', error);
+    return null;
+  }
+}
+
+/**
+ * Retrieve an order based on the composite key.
+ */
+async function getOrderByCompositeKey(chatId, userId) {
+  try {
+    const compositeKey = getCompositeKey(chatId, userId);
+    const selectedOrder = await SelectedOrder.findOne({ compositeKey });
+    if (selectedOrder) {
+      return await getOrderById(selectedOrder.orderId);
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving order by composite key:', error);
+    return null;
+  }
+}
 // --------------------
 // Functions for Buy Orders
 // --------------------
@@ -470,5 +535,9 @@ module.exports = {
   getOrderDetails,
   getOrderById,
   updateSellOrderInDB,
-  createSellOrderInDB
+  createSellOrderInDB,
+   
+  createOrder,
+  getOrderById,
+  getOrderByCompositeKey,
 };
