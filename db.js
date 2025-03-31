@@ -270,7 +270,7 @@ const OrderSchemas = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Orders = mongoose.model('Order', OrderSchemas);
+const Orders = mongoose.model('Orders', OrderSchemas);
 
 
 const SelectedOrderSchema = new mongoose.Schema({
