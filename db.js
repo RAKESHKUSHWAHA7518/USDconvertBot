@@ -260,6 +260,25 @@ const CounterSchema = new mongoose.Schema({
 });
 const Counter = mongoose.model('Counter', CounterSchema);
 
+const OrderSchema = new mongoose.Schema({
+  orderId: { type: String, required: true, unique: true },
+  orderNumber: { type: String }, // if applicable
+  totalAmount: { type: Number, required: true },
+  amountPaid: { type: Number, default: 0 },
+  status: { type: String, default: 'created' },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Orders = mongoose.model('Order', OrderSchema);
+
+
+const SelectedOrderSchema = new mongoose.Schema({
+  compositeKey: { type: String, required: true, unique: true },
+  orderId: { type: String, required: true },
+});
+
+const SelectedOrder = mongoose.model('SelectedOrder', SelectedOrderSchema);
+
 // --------------------
 // Functions for Buy Orders
 // --------------------

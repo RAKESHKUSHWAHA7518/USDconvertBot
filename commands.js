@@ -1052,12 +1052,12 @@ async function sellHandler(bot, msg, match) {
 //   bot.sendMessage(msg.chat.id, responseText);
 const responseText = `
 ✅ Order #${newSellOrder.orderNumber}
-Seller @${msg.from.username} accepted your  order for ${amount} USDT at ₹${lastValue.price} per USDT. INR: ₹${amount*lastvalue.price} 
+Seller @${msg.from.username} accepted your  order for ${amount} USDT at ₹${lastValue.price} per USDT. INR: ₹${amount*lastValue.price} 
 Please transfer USDT to the buyer's wallet (USDT TRC20) and Address:TUwxkYU7hJZCnqi1rCgZeBuDxQvuzC2Leq send your transaction proof using /paid.
     `;
     bot.sendMessage(msg.chat.id, responseText);
 }
-
+  
 // Handler to confirm USDT transaction and trigger INR payment.
 async function confirmHandler(bot, msg) {
   // Expecting a message like: "/paid <transaction_token>"
