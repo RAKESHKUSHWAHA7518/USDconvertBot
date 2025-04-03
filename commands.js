@@ -922,6 +922,7 @@ const {
   getOrder,
   updateOrder,
 } = require('./db');
+const generatePdfReport = require('./pdfgenerate');
 const { verifyTronTransaction } = require('./tron');
 
 // In-memory stores for demonstration
@@ -1402,19 +1403,41 @@ Account Holder: ${bankDetails.name}`
 }
 // i have to work
 // Handler for generating a daily report.
-function reportHandler(bot, msg, match) {
+// async function reportHandler(bot, msg, match) {
+//   const reportDate = match[1].trim();
+//   const reportData = await generateDailyReport();
+//   console.log(reportData);
+  
+//   if (reportData) {
+//     const reportText = `${reportData}`;
+//     bot.sendMessage(msg.chat.id, reportText);
+//   } else {
+//     bot.sendMessage(msg.chat.id, "No data available for this date.");
+//   }
+// }
+
+async function reportHandler(bot, msg, match) {
+  // Assume the user sends a date in "DD-MM-YYYY" format as the first capture group
   const reportDate = match[1].trim();
-  const reportData = generateDailyReport(reportDate);
-  if (reportData) {
-    const reportText = `
-USDT-INR Report for ${reportDate}
-Total Trades: ${reportData.totalTrades}
-Total USDT Traded: ${reportData.totalUSDT} USDT
-Exchange Price: ₹${reportData.exchangePrice}
-INR Received: ₹${reportData.inrReceived}
-INR Pending: ₹${reportData.inrPending}
-    `;
-    bot.sendMessage(msg.chat.id, reportText);
+  
+  // Retrieve the daily report data for the given date
+  const reportData = await generateDailyReport(reportDate);
+  console.log("Report Data:", reportData);
+  
+  if (reportData && reportData.length > 0) {
+    try {
+      // Generate PDF from the report data
+      const pdfBuffer = await generatePdfReport(reportData);
+
+      // Send the PDF document via your bot
+      bot.sendDocument(msg.chat.id, pdfBuffer, {}, { 
+        filename: 'daily_report.pdf', 
+        contentType: 'application/pdf'
+      });
+    } catch (error) {
+      console.error("Error generating PDF report:", error);
+      bot.sendMessage(msg.chat.id, "Error generating PDF report.");
+    }
   } else {
     bot.sendMessage(msg.chat.id, "No data available for this date.");
   }

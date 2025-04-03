@@ -263,7 +263,8 @@ const CounterSchema = new mongoose.Schema({
 const Counter = mongoose.model('Counter', CounterSchema);
 
 const OrderDetailsSchemas = new mongoose.Schema({
-  orderId: { type: String, required: true, unique: true },
+  // orderId: { type: String, required: true, unique: true },
+  orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'SellOrder', required: true, unique: true },
   compositeKey: { type: String, required: true, unique: true },
   orderNumber: { type: String }, // if applicable
   totalAmount: { type: Number, required: true },
@@ -303,6 +304,14 @@ function getCompositeKey(chatId, userId,orderNumber) {
 async function createOrder(orderId, totalAmount, chatId, userId, orderNumber) {
   console.log(orderId);
   const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+//  const sellOrder = await SellOrder.findOne({ orderNumber: Number(identifier) });
+const sellOrder = await SellOrder.findById(orderId);
+console.log(sellOrder);
+
+ if (!sellOrder) {
+  throw new Error('SellOrder not found');
+}
+
   try {
     // Create and save the order document.
     const ordersdetails = new Ordersdetails({
@@ -593,27 +602,95 @@ function getUserHistory(username) {
 }
 
 // Placeholder function to generate a daily report based on the date
-function generateDailyReport(date) {
-  // Implement your reporting logic here
-  return null; // Placeholder return
-}
+// async function generateDailyReport(date) {
+//   // async function getOrderDetailsWithSellOrder(orderDetailsId) {
+//     try {
+//       const orderDetails = await Ordersdetails.findById(orderDetailsId).populate('orderId');
+//       console.log('OrderDetails with populated SellOrder:', orderDetails);
+//       return orderDetails;
+//     } catch (error) {
+//       console.error('Error fetching order details:', error);
+//       return null
+//     }
+  
+//   ; // Placeholder return
+// }
 
 // Mark the progress of an order (e.g., update status to 'pending', 'completed', etc.)
-async function markOrderStep(orderId, step) {
-  console.log("Marking order", orderId, "as", step);
+// async function markOrderStep(orderId, step) {
+//   console.log("Marking order", orderId, "as", step);
+//   try {
+//     const result = await Order.findByIdAndUpdate(
+//       orderId, 
+//       { status: step },
+//       { new: true }
+//     );
+//     console.log('Order step updated:', result);
+//   } catch (err) {
+//     console.error('Error updating order step:', err);
+//   }
+// }
+
+// async function generateDailyReport(date = new Date()) {
+//   console.log(date);
+  
+//   try {
+//     // Get the start and end of the day for the provided date
+//     const startOfDay = new Date(date);
+//     startOfDay.setHours(0, 0, 0, 0);
+
+//     const endOfDay = new Date(date);
+//     endOfDay.setHours(23, 59, 59, 999);
+
+//     // Query for OrderDetails created within today's range
+//     const dailyOrders = await Ordersdetails.find({
+//       createdAt: { $gte: startOfDay, $lte: endOfDay }
+//     }).populate('orderId'); // Populate the associated SellOrder
+
+//     console.log("Today's Order Details with populated SellOrder:", dailyOrders);
+//     return dailyOrders;
+//   } catch (error) {
+//     console.error("Error fetching daily report:", error);
+//     return null;
+//   }
+// }
+
+// Placeholder function to extract transaction details from a message
+
+async function generateDailyReport(dateInput = new Date()) {
+  let date;
+  if (typeof dateInput === "string") {
+    const parts = dateInput.split("-");
+    if (parts.length !== 3) {
+      console.error("Invalid date format. Use DD-MM-YYYY.");
+      return [];
+    }
+    // Note: Month in JavaScript Date is 0-indexed
+    date = new Date(parts[2], parts[1] - 1, parts[0]);
+  } else {
+    date = new Date(dateInput);
+  }
+
   try {
-    const result = await Order.findByIdAndUpdate(
-      orderId, 
-      { status: step },
-      { new: true }
-    );
-    console.log('Order step updated:', result);
-  } catch (err) {
-    console.error('Error updating order step:', err);
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Use find (instead of findOne) to retrieve all orders for that day
+    const dailyOrders = await Ordersdetails.find({
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    }).populate('orderId'); // Populates the associated SellOrder
+
+    console.log("Daily Orders:", dailyOrders);
+    return dailyOrders;
+  } catch (error) {
+    console.error("Error fetching daily report:", error);
+    return [];
   }
 }
 
-// Placeholder function to extract transaction details from a message
 function getTransactionDetails(msg) {
   // Implement logic to extract transaction details from the message
   return {}; // Placeholder return
@@ -646,7 +723,7 @@ module.exports = {
   recordSellerResponse,
   getUserHistory,
   generateDailyReport,
-  markOrderStep,
+   
   getTransactionDetails,
   verifyTronTransaction,
   cleanupOldRecords,
