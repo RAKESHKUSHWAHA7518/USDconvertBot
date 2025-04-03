@@ -175,6 +175,8 @@
 
 const TronWeb = require('tronweb');
 const axios = require('axios');
+const { getTransaction, transactionid } = require('./db');
+// const { gettransaction } = require('./db');
 
 // Connect using TronGrid endpoint
 const tronWeb = new TronWeb({
@@ -195,6 +197,12 @@ async function checkConfirmationStatus(txId) {
 }
 
 async function verifyTronTransaction(txId) {
+  const transaction= await getTransaction(txId);
+  console.log("ggdfgdg",transaction);
+  
+  //  if(transaction?.transactionId){
+  //   return false
+  //  }
   try {
     const transaction = await tronWeb.trx.getTransaction(txId);
     console.log('Transaction Details:', transaction);
@@ -225,6 +233,9 @@ async function verifyTronTransaction(txId) {
       // Check if funds are sent to your account
       if (toAddress === tronWeb.address.fromHex(MY_WALLET_ADDRESS)) {
         console.log('✅ Funds are sent to your account.');
+    // const data=   await transactionid(txId)
+    // console.log(data);
+    
         return true;
       } else {
         console.log('⚠️ Funds were NOT sent to your account.');
@@ -245,6 +256,7 @@ async function verifyTronTransaction(txId) {
           : tronWeb.address.fromHex(apiContractData.contract_address);
         if (apiToAddress === tronWeb.address.fromHex(MY_WALLET_ADDRESS)) {
           console.log('✅ Funds are sent to your account.');
+        //  await transactionid(txId)
           return true;
         } else {
           console.log('⚠️ Funds were NOT sent to your account.');

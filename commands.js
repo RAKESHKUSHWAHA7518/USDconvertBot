@@ -904,7 +904,7 @@
 // Assume these functions interact with your database or external services.
 const {
   saveBuyOrder,
-  getMatchingBuyOrder,
+  // getMatchingBuyOrder,
   recordSellerResponse,
   getUserHistory,
   generateDailyReport,
@@ -913,6 +913,14 @@ const {
   getOrderDetails,
   updateSellOrderInDB,
   createSellOrderInDB,
+  getMatchingBuyOrder,
+  getMatchingBuyOrders,
+  getCompositeKey,
+  createOrder,
+  getOrderByCompositeKey,
+  storeSelectedOrderMapping,
+  getOrder,
+  updateOrder,
 } = require('./db');
 const { verifyTronTransaction } = require('./tron');
 
@@ -921,28 +929,30 @@ const orders = {}; // Maps orderId to order details.
 const selectedOrders = {}; // Maps composite key "chatId_userId" to orderId.
 
 // Helper: generate a composite key based on group chat id and user id.
-function getCompositeKey(chatId, userId) {
-  return `${chatId}_${userId}`;
-}
+// function getCompositeKey(chatId, userId) {
+//   return `${chatId}_${userId}`;
+// }
+
+
 
 // Create an order and map it to the composite key.
-function createOrder(orderId, totalAmount, chatId, userId,orderNumber) {
-  console.log(userId);
+// function createOrder(orderId, totalAmount, chatId, userId,orderNumber) {
+//   console.log(userId);
   
-  orders[orderId] = {
-    totalAmount: totalAmount,
-    amountPaid: 0,
-    status: "created", // optional status field
-  };
-  orders[orderNumber] = {
-    totalAmount: totalAmount,
-    amountPaid: 0,
-    status: "created", // optional status field
-  };
+//   orders[orderId] = {
+//     totalAmount: totalAmount,
+//     amountPaid: 0,
+//     status: "created", // optional status field
+//   };
+//   orders[orderNumber] = {
+//     totalAmount: totalAmount,
+//     amountPaid: 0,
+//     status: "created", // optional status field
+//   };
 
-  // Map the order using the composite key.
-  selectedOrders[getCompositeKey(chatId, userId)] = orderId;
-}
+//   // Map the order using the composite key.
+//   selectedOrders[getCompositeKey(chatId, userId)] = orderId;
+// }
 
 // Sends the welcome message.
 function startHandler(bot, msg) {
@@ -995,6 +1005,9 @@ async function setPriceHandler(bot, msg, match) {
 // Handler for users to sell USDT.
 // Uses composite keys to track orders per user in a group chat.
 async function sellHandler(bot, msg, match) {
+  // console.log(bot);
+  console.log(msg);
+  console.log(match);
   const amount = parseFloat(match[1]);
   if (isNaN(amount)) {
     bot.sendMessage(msg.chat.id, "Usage: /sell <amount>");
@@ -1002,12 +1015,16 @@ async function sellHandler(bot, msg, match) {
   }
 
   // Get the matching buy order(s) and use the latest one.
-  const priceList = await getMatchingBuyOrder();
+  
+  const priceList = await  getMatchingBuyOrder();
+  // console.log(priceList);
+  
   if (!priceList || priceList.length === 0) {
     bot.sendMessage(msg.chat.id, "No matching buy orders available.");
     return;
   }
   const lastValue = priceList[priceList.length - 1];
+console.log("fddg",lastValue);
 
   // Check if the order amount is within allowed limits.
   if (amount < 10 || amount > 10000) {
@@ -1021,6 +1038,7 @@ async function sellHandler(bot, msg, match) {
     amount,
     createdAt: new Date(),
     status: 'pending',
+    
   };
 
   const newSellOrder = await createSellOrderInDB(sellOrderData);
@@ -1036,7 +1054,7 @@ async function sellHandler(bot, msg, match) {
   // Store the order using the composite key.
   const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
   selectedOrders[compositeKey] = newSellOrder._id;
-
+await storeSelectedOrderMapping(msg.chat.id, msg.from.id,newSellOrder._id,newSellOrder.orderNumber)
   recordSellerResponse(newSellOrder._id, {
     seller: msg.from.username,
     amount,
@@ -1059,40 +1077,100 @@ Please transfer USDT to the buyer's wallet (USDT TRC20) and Address:TUwxkYU7hJZC
 }
   
 // Handler to confirm USDT transaction and trigger INR payment.
+// async function confirmHandler(bot, msg) {
+//   // Expecting a message like: "/paid <transaction_token>"
+//   const text = msg.text;
+//   const match = text.match(/\/paid\s+(\w+)/);
+//   if (!match || !match[1]) {
+//     bot.sendMessage(msg.chat.id, "Usage: /confirm <transaction_token>");
+//     return;
+//   }
+  
+//   console.log("yyu",selectedOrders);
+  
+//   const token = match[1];
+//   // const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
+//   // const orderId = selectedOrders[compositeKey];
+//   const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id);
+// console.log("ttt",orderDetails);
+
+//   if (!orderDetails) {
+//     bot.sendMessage(msg.chat.id, "No order selected for confirmation. Please select an order first.");
+//     return;
+//   }
+
+//   // Verify the transaction using the provided token.
+//   const verification = await verifyTronTransaction(token);
+//   // const orderDetails = await getOrderDetails(orderId);
+//   if (verification) {
+//     const totalINR = orderDetails.amount * orderDetails.price;
+//     bot.sendMessage(
+//       msg.chat.id,
+//       `✅ Order #${orderDetails.orderNumber} ${orderDetails.amount} USDT TRC20 transaction verified.
+// I will pay ₹${totalINR} INR.
+// Please share your UPI ID or Bank details with /upi or /bank.`
+//     );
+//     await updateSellOrderInDB(orderDetails.orderId, { status: 'confirmed' });
+//     createOrder(orderDetails.orderId, totalINR, msg.chat.id, msg.from.id,orderDetails.orderNumber);
+//   } else {
+//     bot.sendMessage(msg.chat.id, `Order #${orderDetails.orderNumber} Transaction verification failed. Please try again.`);
+//   }
+// }
 async function confirmHandler(bot, msg) {
-  // Expecting a message like: "/paid <transaction_token>"
-  const text = msg.text;
-  const match = text.match(/\/paid\s+(\w+)/);
-  if (!match || !match[1]) {
-    bot.sendMessage(msg.chat.id, "Usage: /confirm <transaction_token>");
-    return;
-  }
-  
-  
-  const token = match[1];
-  const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
-  const orderId = selectedOrders[compositeKey];
+  try {
+      // Expecting a message like: "/paid <orderNumber> <transaction_token>"
+      const text = msg.text;
+      const match = text.match(/\/paid\s+(\d+)\s+(\w+)/);
+console.log(match);
 
-  if (!orderId) {
-    bot.sendMessage(msg.chat.id, "No order selected for confirmation. Please select an order first.");
-    return;
-  }
+      if (!match || !match[1] || !match[2]) {
+          bot.sendMessage(msg.chat.id, "Usage: /paid <orderNumber> <transaction_token>");
+          return;
+      }
 
-  // Verify the transaction using the provided token.
-  const verification = await verifyTronTransaction(token);
-  const orderDetails = await getOrderDetails(orderId);
-  if (verification) {
-    const totalINR = orderDetails.amount * orderDetails.price;
-    bot.sendMessage(
-      msg.chat.id,
-      `✅ Order #${orderDetails.orderNumber} ${orderDetails.amount} USDT TRC20 transaction verified.
+      const orderNumber = match[1];
+      const token = match[2];
+
+      console.log("Received orderNumber:", orderNumber);
+      console.log("Received transaction token:", token);
+
+      // Fetch order details using orderNumber and chatId, userId
+      const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id, orderNumber);
+      console.log("Order Details:", orderDetails);
+     console.log(orderDetails._id);
+     
+      if (!orderDetails) {
+          bot.sendMessage(msg.chat.id, `No order found with Order Number: ${orderNumber}. Please check and try again.`);
+          return;
+      }
+
+      // Verify the transaction using the provided token
+      const verification = await verifyTronTransaction(token);
+
+      if (verification) {
+          const totalINR = orderDetails.amount * orderDetails.price;
+          await updateSellOrderInDB(orderDetails._id, { status: "confirmed" });
+
+          // Create a new order record
+          await createOrder(orderDetails._id, totalINR, msg.chat.id, msg.from.id, orderDetails.orderNumber);
+          bot.sendMessage(
+              msg.chat.id,
+              `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
 I will pay ₹${totalINR} INR.
-Please share your UPI ID or Bank details with /upi or /bank.`
-    );
-    await updateSellOrderInDB(orderId, { status: 'confirmed' });
-    createOrder(orderId, totalINR, msg.chat.id, msg.from.id,orderDetails.orderNumber);
-  } else {
-    bot.sendMessage(msg.chat.id, `Order #${orderDetails.orderNumber} Transaction verification failed. Please try again.`);
+Please share your UPI ID or Bank details using /upi or /bank.`
+          );
+
+          // Update the order status in the database
+         
+      } else {
+          bot.sendMessage(
+              msg.chat.id,
+              `❌ Order #${orderDetails.orderNumber} Transaction verification failed. Please try again.`
+          );
+      }
+  } catch (error) {
+      console.error("Error in confirmHandler:", error);
+      bot.sendMessage(msg.chat.id, "An error occurred while processing your request. Please try again.");
   }
 }
 
@@ -1153,81 +1231,99 @@ async function paidHandler(bot, msg, match) {
   // Split command by spaces and remove any empty tokens.
   const tokens = match.input.split(' ').filter(token => token.trim() !== '');
   
-  let orderId, paidAmount;
-
+  let orderId, paidAmount, orderDetails;
+  orderId = tokens[1];
+  paidAmount = parseFloat(tokens[2]);
   // If two parameters are provided: "/paid <order_id> <amount>"
   if (tokens.length === 3) {
     // Only allow admin to use explicit order IDs.
-    const adminUser = "Mukesh760796"; // Adjust as needed
-    if (msg.from.username !== adminUser) {
-      bot.sendMessage(msg.chat.id, "Unauthorized: Only admin can specify an order ID.");
-      return;
-    }
+    // const adminUser = "Mukesh760796"; // Adjust as needed
+    // if (msg.from.username !== adminUser) {
+    //   bot.sendMessage(msg.chat.id, "Unauthorized: Only admin can specify an order ID.");
+    //   return;
+    // }
     orderId = tokens[1];
     paidAmount = parseFloat(tokens[2]);
   } else if (tokens.length === 2) {
     // Non-admin users (or admin not specifying an order id) use the composite key mapping.
     paidAmount = parseFloat(tokens[1]);
     // Build the composite key from the group chat and the sender's ID.
-    orderId = selectedOrders[ getCompositeKey(msg.chat.id, msg.from.id) ];
+    // orderId = selectedOrders[ getCompositeKey(msg.chat.id, msg.from.id,orderId) ];
+    // const orderDetails = await getOrder(msg.chat.id, msg.from.id, orderId);
   } else {
     bot.sendMessage(msg.chat.id, "Usage: /paid <order_id> <amount> (admin) OR /paid <amount> (user)");
     return;
   }
-console.log(orderId);
-
+console.log("sffg",orderId);
+ console.log(paidAmount);
+ 
   // Retrieve order details using the orderId.
-  const orderDetails = await getOrderDetails(orderId);
+  // const orderDetails = await getOrderDetails(orderId);
+  const order = await getOrder(msg.chat.id, msg.from.id, orderId);
+console.log(order);
 
   if (isNaN(paidAmount) || paidAmount <= 0) {
     bot.sendMessage(
       msg.chat.id,
-      `Order #${orderDetails.orderNumber} - Please enter a valid amount. Example: /confirm 5000`
+      `Order #${order.orderNumber} - Please enter a valid amount. Example: /confirm 5000`
     );
     return;
   }
 console.log(orders);
 
-  if (!orderId || !orders[orderId]) {
-    bot.sendMessage(msg.chat.id, "Order not found.");
-    return;
-  }
+  // if (!orderId || !orders[orderId]) {
+  //   bot.sendMessage(msg.chat.id, "Order not found.");
+  //   return;
+  // }
 
   // Update the order’s paid amount.
-  const order = orders[orderId];
-  order.amountPaid = (Number(order.amountPaid) || 0) + Number(paidAmount);
+  // const order = orders[orderId];
+  order.amountPaid = (Number(order?.amountPaid) || 0) + Number(paidAmount);
+console.log(order.amountPaid);
 
   // Provide appropriate feedback.
-  if (order.amountPaid < order.totalAmount) {
-    const remaining = order.totalAmount - order.amountPaid;
+  if (order?.amountPaid < order?.totalAmount) {
+    const remaining = order?.totalAmount - order?.amountPaid;
+    const updateFields = { status: 'Incompleted', amountPaid:order.amountPaid };
+   await  updateOrder(msg.chat.id,msg.from.id,orderId, updateFields)
     bot.sendMessage(
       msg.chat.id,
-      `✅ Order #${orderDetails.orderNumber} Partial payment detected.
+      `✅ Order #${order.orderNumber} Partial payment detected.
 You have paid ₹${order.amountPaid} out of ₹${order.totalAmount}.
 Please pay the remaining ₹${remaining}.`
     );
   } else if (order.amountPaid === order.totalAmount) {
-    markOrderStep(orderId, "INR_paid");
+    // markOrderStep(orderId, "INR_paid");
+    const updateFields = { status: 'completed', amountPaid:order.amountPaid };
+    await  updateOrder(msg.chat.id,msg.from.id,orderId, updateFields)
     bot.sendMessage(
       msg.chat.id,
-      `✅ Order #${orderDetails.orderNumber} Payment complete. Waiting for seller confirmation of INR receipt. /done`
+      `✅ Order #${order.orderNumber} Payment complete. Waiting for seller confirmation of INR receipt. /done`
     );
   } else {
     const extra = order.amountPaid - order.totalAmount;
+    const updateFields = { status: 'Extra', amountPaid:order.amountPaid };
+    await  updateOrder(msg.chat.id,msg.from.id,orderId, updateFields)
     bot.sendMessage(
       msg.chat.id,
-      `✅ Order #${orderDetails.orderNumber} Payment complete with ₹${extra} extra paid. Waiting for seller confirmation. /done`
+      `✅ Order #${order.orderNumber} Payment complete with ₹${extra} extra paid. Waiting for seller confirmation. /done`
     );
   }
 }
 
 // Handler for seller confirmation once INR is received.
 
-async function sellerConfirmHandler(bot, msg) {
-  const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
-  const orderId = selectedOrders[compositeKey];
-  const orderDetails = await getOrderDetails(orderId);
-  if (!orderId) {
+async function sellerConfirmHandler(bot, msg,match) {
+  console.log(match);
+  const tokens = match.input.split(' ').filter(token => token.trim() !== '');
+  console.log(tokens[1]);
+ const  orderNumber =tokens[1]
+  const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id,orderNumber);
+  console.log(orderDetails);
+  
+  // const orderId = selectedOrders[compositeKey];
+  // const orderDetails = await getOrderDetails(orderId);
+  if (!orderNumber) {
     bot.sendMessage(
       msg.chat.id,
       `Order #${orderDetails.orderNumber} - No order associated with this chat. Please select an order first.`
@@ -1243,7 +1339,7 @@ async function sellerConfirmHandler(bot, msg) {
       `✅ Order #${orderDetails.orderNumber} 👍 Transaction completed successfully.`
     );
     // Remove the order from the mapping once completed.
-    delete selectedOrders[compositeKey];
+    // delete selectedOrders[compositeKey];
   } catch (error) {
     console.error("Error finalizing seller confirmation:", error);
     bot.sendMessage(
@@ -1336,6 +1432,6 @@ module.exports = {
   sellerConfirmHandler,
   upiHandler,
   bankHandler,
-  createOrder,
+  // createOrder,
   getCompositeKey
 };

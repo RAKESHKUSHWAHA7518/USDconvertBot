@@ -215,7 +215,7 @@
 
 
 const mongoose = require('mongoose');
-const { getCompositeKey } = require('./commands');
+// const { getCompositeKey } = require('./commands');
 require('dotenv').config();
 console.log(process.env.DATABASE);
 const mongoUri = process.env.DATABASE;
@@ -245,7 +245,8 @@ const SellOrderSchema = new mongoose.Schema({
   seller: String,      // The seller's identifier or name
   amount: Number,      // The amount of cryptocurrency being sold
   price: Number,       // The price at which the cryptocurrency is sold
-  status: String,      // The current status (e.g., 'open', 'completed', 'cancelled')
+  status: String,
+  // username:String,      // The current status (e.g., 'open', 'completed', 'cancelled')
   orderNumber: Number, // A sequential order number for sell orders
   createdAt: { type: Date, default: Date.now }
 });
@@ -261,8 +262,9 @@ const CounterSchema = new mongoose.Schema({
 });
 const Counter = mongoose.model('Counter', CounterSchema);
 
-const OrderSchemas = new mongoose.Schema({
+const OrderDetailsSchemas = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
+  compositeKey: { type: String, required: true, unique: true },
   orderNumber: { type: String }, // if applicable
   totalAmount: { type: Number, required: true },
   amountPaid: { type: Number, default: 0 },
@@ -270,7 +272,7 @@ const OrderSchemas = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const Orders = mongoose.model('Orders', OrderSchemas);
+const Ordersdetails = mongoose.model('Ordersdetails', OrderDetailsSchemas);
 
 
 const SelectedOrderSchema = new mongoose.Schema({
@@ -280,6 +282,14 @@ const SelectedOrderSchema = new mongoose.Schema({
 
 const SelectedOrder = mongoose.model('SelectedOrder', SelectedOrderSchema);
 
+const transactionSchema = new mongoose.Schema({
+  transactionId: { type: String, required: true },
+})
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+function getCompositeKey(chatId, userId,orderNumber) {
+  return `${chatId}_${userId}_${orderNumber}`;
+}
 
 /**
  * Save an order and the selected order mapping into the database.
@@ -291,30 +301,126 @@ const SelectedOrder = mongoose.model('SelectedOrder', SelectedOrderSchema);
  * @param {string} orderNumber - Order number (optional).
  */
 async function createOrder(orderId, totalAmount, chatId, userId, orderNumber) {
+  console.log(orderId);
+  const compositeKey = getCompositeKey(chatId, userId,orderNumber);
   try {
     // Create and save the order document.
-    const order = new Order({
-      orderId,
+    const ordersdetails = new Ordersdetails({
+      orderId:orderId,
       orderNumber,
       totalAmount,
       amountPaid: 0,
       status: 'created',
+      compositeKey
     });
-    await Orders.save();
-    console.log('Order saved:', order);
+    console.log(ordersdetails);
+    
+    await ordersdetails.save();
+    console.log('Order saved:', ordersdetails);
 
     // Create and save the selected order mapping.
-    const compositeKey = getCompositeKey(chatId, userId);
-    const selectedOrder = new SelectedOrder({
-      compositeKey,
-      orderId,
-    });
-    await selectedOrder.save();
-    console.log('Selected order mapping saved:', selectedOrder);
+    // const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+    // const selectedOrder = new SelectedOrder({
+    //   compositeKey,
+    //   orderId,
+    // });
+    // await selectedOrder.save();
+    // console.log('Selected order mapping saved:', selectedOrder);
   } catch (error) {
     console.error('Error saving order:', error);
   }
 }
+
+async function updateOrder(chatId, userId,orderNumber, updateFields) {
+  const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+  try {
+    const updatedOrder = await Ordersdetails.findOneAndUpdate(
+      { compositeKey },
+      { $set: updateFields },
+      { new: true } // returns the updated document
+    );
+    if (!updatedOrder) {
+      console.log(`Order with ID ${compositeKey} not found.`);
+      return null;
+    }
+    console.log('Order updated:', updatedOrder);
+    return updatedOrder;
+  } catch (error) {
+    console.error('Error updating order:', error);
+    throw error;
+  }
+}
+
+async function getOrder(chatId, userId, orderNumber ) {
+  const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+  try {
+    const order = await Ordersdetails.findOne({ compositeKey });
+    console.log(order);
+    
+    if (!order) {
+      console.log(`Order with ID ${compositeKey} not found.`);
+      return false;
+    }
+    console.log('Order retrieved:', order);
+    return order;
+  } catch (error) {
+    console.error('Error retrieving order:', error);
+    throw error;
+  }
+}
+
+async function transactionid( transactionId) {
+  try {
+    // const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+    const transaction = new Transaction({transactionId});
+
+    await transaction.save();
+    return transaction;
+  } catch (error) {
+    console.error('Error retrieving order by composite key:', error);
+    return null;
+  }
+}
+
+async function getTransaction(transactionId) {
+  try {
+    return await Transaction.findOne({ transactionId });
+
+  } catch (error) {
+    console.error('Error retrieving order:', error);
+    return false;
+  }
+}
+
+async function storeSelectedOrderMapping(chatId, userId, orderId,orderNumber) {
+  console.log(orderId);
+  
+  try {
+    const compositeKey = getCompositeKey(chatId, userId,orderNumber);
+
+    // Check if an entry with the same compositeKey and orderId already exists
+    const existingOrder = await SelectedOrder.findOne({ compositeKey, orderId });
+
+    if (existingOrder) {
+      console.log(`Duplicate order detected: User ${userId} already sold Order ${orderId}`);
+      return { error: "You cannot sell the same order multiple times." };
+    }
+
+    // If no duplicate, save the new order mapping
+    const selectedOrder = new SelectedOrder({
+      compositeKey,
+      orderId,
+    });
+
+    await selectedOrder.save();
+    console.log('Selected order mapping saved:', selectedOrder);
+    return selectedOrder;
+  } catch (error) {
+    console.error('Error saving selected order mapping:', error);
+    return { error: "Failed to save order mapping." };
+  }
+}
+
 
 /**
  * Retrieve an order by its orderId.
@@ -328,15 +434,25 @@ async function getOrderById(orderId) {
   }
 }
 
+async function getOrderByIdDetails(orderId) {
+  try {
+    return await Orders.findOne({ orderId });
+  } catch (error) {
+    console.error('Error retrieving order:', error);
+    return null;
+  }
+}
 /**
  * Retrieve an order based on the composite key.
  */
-async function getOrderByCompositeKey(chatId, userId) {
+async function getOrderByCompositeKey(chatId, userId,orderNumber) {
   try {
-    const compositeKey = getCompositeKey(chatId, userId);
+    const compositeKey = getCompositeKey(chatId, userId,orderNumber);
     const selectedOrder = await SelectedOrder.findOne({ compositeKey });
+    console.log("Rakesh",selectedOrder);
+    
     if (selectedOrder) {
-      return await getOrderById(selectedOrder.orderId);
+      return await getOrderDetails(selectedOrder.orderId);
     }
     return null;
   } catch (error) {
@@ -452,7 +568,9 @@ async function updateSellOrderInDB(orderId, updateData) {
       { $set: updateData },
       { new: true }
     );
+    console.log(updatedOrder);
     return updatedOrder;
+     
   } catch (error) {
     console.error("Error updating sell order:", error.message);
     return null;
@@ -536,8 +654,13 @@ module.exports = {
   getOrderById,
   updateSellOrderInDB,
   createSellOrderInDB,
-   
+  getCompositeKey,
   createOrder,
   getOrderById,
   getOrderByCompositeKey,
+  storeSelectedOrderMapping,
+  updateOrder,
+  getOrder,
+  transactionid,
+  getTransaction
 };
