@@ -975,7 +975,7 @@ Available commands:
 // Handler for the admin to set price.
 async function setPriceHandler(bot, msg, match) {
   // Replace with your own admin username or IDs.
-  const allowedUser = 'Mukesh760796';
+  const allowedUser = 'cabal_leader';
   if (msg.from.username !== allowedUser) {
     bot.sendMessage(msg.chat.id, "Unauthorized: This command is restricted.");
     return;
@@ -1018,7 +1018,7 @@ async function sellHandler(bot, msg, match) {
   // Get the matching buy order(s) and use the latest one.
   
   const priceList = await  getMatchingBuyOrder();
-  // console.log(priceList);
+  console.log(priceList);
   
   if (!priceList || priceList.length === 0) {
     bot.sendMessage(msg.chat.id, "No matching buy orders available.");
@@ -1120,6 +1120,10 @@ Please transfer USDT to the buyer's wallet (USDT TRC20) and Address:TUwxkYU7hJZC
 async function confirmHandler(bot, msg) {
   try {
       // Expecting a message like: "/paid <orderNumber> <transaction_token>"
+      console.log("yyy",msg);
+      const user= msg.from.username;
+console.log(user);
+
       const text = msg.text;
       const match = text.match(/\/paid\s+(\d+)\s+(\w+)/);
 console.log(match);
@@ -1128,6 +1132,8 @@ console.log(match);
           bot.sendMessage(msg.chat.id, "Usage: /paid <orderNumber> <transaction_token>");
           return;
       }
+
+
 
       const orderNumber = match[1];
       const token = match[2];
@@ -1141,10 +1147,16 @@ console.log(match);
      console.log(orderDetails._id);
      
       if (!orderDetails) {
-          bot.sendMessage(msg.chat.id, `No order found with Order Number: ${orderNumber}. Please check and try again.`);
+          bot.sendMessage(msg.chat.id, `No order found with Order Number: ${orderNumber}. Please check it your order Number and try again.`);
           return;
       }
-
+    console.log(!user==orderDetails.seller);
+    
+      if (!user==orderDetails.seller) {
+        bot.sendMessage(msg.chat.id, `You are not the seller of this order. Please use /paid <orderNumber>  < to confirm the transaction.`);
+        // bot.sendMessage(msg.chat.id, `No order found with Order Number: ${orderNumber}. Please check and try again.`);
+        return;
+    }
       // Verify the transaction using the provided token
       const verification = await verifyTronTransaction(token);
 
@@ -1238,11 +1250,11 @@ async function paidHandler(bot, msg, match) {
   // If two parameters are provided: "/paid <order_id> <amount>"
   if (tokens.length === 3) {
     // Only allow admin to use explicit order IDs.
-    // const adminUser = "Mukesh760796"; // Adjust as needed
-    // if (msg.from.username !== adminUser) {
-    //   bot.sendMessage(msg.chat.id, "Unauthorized: Only admin can specify an order ID.");
-    //   return;
-    // }
+    const adminUser = "cabal_leader"; // Adjust as needed
+    if (msg.from.username !== adminUser) {
+      bot.sendMessage(msg.chat.id, "Unauthorized: Only admin can specify an order ID.");
+      return;
+    }
     orderId = tokens[1];
     paidAmount = parseFloat(tokens[2]);
   } else if (tokens.length === 2) {
@@ -1261,7 +1273,12 @@ console.log("sffg",orderId);
   // Retrieve order details using the orderId.
   // const orderDetails = await getOrderDetails(orderId);
   const order = await getOrder(msg.chat.id, msg.from.id, orderId);
-console.log(order);
+console.log("ttt",order);
+
+if(!order) {
+  bot.sendMessage(msg.chat.id, `Order #${orderId} not found.`);
+  return;
+}
 
   if (isNaN(paidAmount) || paidAmount <= 0) {
     bot.sendMessage(
@@ -1316,22 +1333,43 @@ Please pay the remaining ₹${remaining}.`
 
 async function sellerConfirmHandler(bot, msg,match) {
   console.log(match);
+  const user= msg.from.username;
+console.log(user);
   const tokens = match.input.split(' ').filter(token => token.trim() !== '');
   console.log(tokens[1]);
  const  orderNumber =tokens[1]
+ console.log(orderNumber);
+ 
   const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id,orderNumber);
   console.log(orderDetails);
   
-  // const orderId = selectedOrders[compositeKey];
-  // const orderDetails = await getOrderDetails(orderId);
+   
   if (!orderNumber) {
     bot.sendMessage(
+      msg.chat.id,
+      `Order #${ orderNumber} - No order associated with this chat. Please select an order first.`
+    );
+    return;
+  }
+
+  if (!orderDetails) {
+    bot.sendMessage(
+      msg.chat.id,
+      `Order #${ orderNumber} -  it not your order. Please select an your.`
+    );
+    return;
+  }
+
+  console.log("ertreere",user==orderDetails.seller);
+  
+   // const orderDetails = await getOrderDetails(orderId);
+   if (!user==orderDetails.seller) {
+    bot.sendMessage(  
       msg.chat.id,
       `Order #${orderDetails.orderNumber} - No order associated with this chat. Please select an order first.`
     );
     return;
   }
-  
   try {
     // Optionally, update order state in the DB.
     // await markOrderStep(orderId, "transaction_done");
@@ -1363,10 +1401,25 @@ function myHistoryHandler(bot, msg) {
 
 // Handler for processing UPI details.
 async function upiHandler(bot, msg, match) {
-  const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
-  const orderId = selectedOrders[compositeKey];
-  const orderDetails = await getOrderDetails(orderId);
-  const upiId = match[1].trim();
+  const tokens = match.input.split(' ').filter(token => token.trim() !== '');
+  console.log(tokens);
+  const orderNumber = tokens[1];
+  const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id,orderNumber);
+  // const orderId = selectedOrders[compositeKey];
+  // const orderDetails = await getOrderDetails(orderId);
+  console.log(orderDetails);
+  
+  const upiId = tokens[2];
+ console.log(upiId);
+ 
+  if (!orderDetails){
+    bot.sendMessage(
+      msg.chat.id,
+      `✅ Order #${orderNumber} not your order Number  Received your UPI ID: ${upiId}`
+    );
+    return;
+  }
+
   // Process and store the UPI ID as needed.
   bot.sendMessage(
     msg.chat.id,
@@ -1376,9 +1429,18 @@ async function upiHandler(bot, msg, match) {
 
 // Handler for processing bank details.
 async function bankHandler(bot, msg, match) {
-  const compositeKey = getCompositeKey(msg.chat.id, msg.from.id);
-  const orderId = selectedOrders[compositeKey];
-  const orderDetails = await getOrderDetails(orderId);
+  const tokens = match.input.split(' ').filter(token => token.trim() !== '');
+  const orderNumber = tokens[1];
+  const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id,orderNumber);
+   
+  
+  if(!orderDetails) {
+    bot.sendMessage(
+      msg.chat.id,
+      `✅ Order #${orderNumber} not your order Number   Enter Your Order Number and bank details`
+    );
+    return;
+  }
 
   const args = match[1].split(' ');
   if (args.length < 5) {
@@ -1401,26 +1463,21 @@ Branch Name: ${bankDetails.branch}
 Account Holder: ${bankDetails.name}`
   );
 }
-// i have to work
-// Handler for generating a daily report.
-// async function reportHandler(bot, msg, match) {
-//   const reportDate = match[1].trim();
-//   const reportData = await generateDailyReport();
-//   console.log(reportData);
-  
-//   if (reportData) {
-//     const reportText = `${reportData}`;
-//     bot.sendMessage(msg.chat.id, reportText);
-//   } else {
-//     bot.sendMessage(msg.chat.id, "No data available for this date.");
-//   }
-// }
+ 
 
 async function reportHandler(bot, msg, match) {
   // Assume the user sends a date in "DD-MM-YYYY" format as the first capture group
   const reportDate = match[1].trim();
-  
-  // Retrieve the daily report data for the given date
+  const user= msg.from.username;
+  const tokens = match.input.split(' ').filter(token => token.trim() !== '');
+  const orderNumber = tokens[1];
+   
+
+  const allowedUser = 'cabal_leader';
+  if (msg.from.username !== allowedUser) {
+    bot.sendMessage(msg.chat.id, "Unauthorized: This command is restricted.");
+    return;
+  }
   const reportData = await generateDailyReport(reportDate);
   console.log("Report Data:", reportData);
   

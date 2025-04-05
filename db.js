@@ -463,10 +463,10 @@ async function getOrderByCompositeKey(chatId, userId,orderNumber) {
     if (selectedOrder) {
       return await getOrderDetails(selectedOrder.orderId);
     }
-    return null;
+    return false;
   } catch (error) {
     console.error('Error retrieving order by composite key:', error);
-    return null;
+    return false;
   }
 }
 // --------------------
@@ -484,11 +484,13 @@ function saveBuyOrder(orderData) {
 async function getMatchingBuyOrder() {
   try {
     const orders = await Order.find({});
+    console.log(orders);
+    
     if (!orders || orders.length === 0) {
       console.log("No matching orders found");
       return null;
     }
-    // console.log("Matching orders:", orders);
+    console.log("Matching orders:", orders);
     return orders;
   } catch (err) {
     console.error("Error fetching matching orders:", err);
