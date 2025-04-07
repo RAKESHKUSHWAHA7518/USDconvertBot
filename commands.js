@@ -1243,6 +1243,7 @@ Please share your UPI ID or Bank details using /upi or /bank.`
 async function paidHandler(bot, msg, match) {
   // Split command by spaces and remove any empty tokens.
   const tokens = match.input.split(' ').filter(token => token.trim() !== '');
+  // console.log(msg);
   
   let orderId, paidAmount, orderDetails;
   orderId = tokens[1];
@@ -1250,8 +1251,13 @@ async function paidHandler(bot, msg, match) {
   // If two parameters are provided: "/paid <order_id> <amount>"
   if (tokens.length === 3) {
     // Only allow admin to use explicit order IDs.
-    const adminUser = "cabal_leader"; // Adjust as needed
-    if (msg.from.username !== adminUser) {
+    const adminUser = "cabal_leader";
+    const developer="mukeshkushwaha1000" // Adjust as needed
+    // if (msg.from.username !== adminUser ) {
+    //   bot.sendMessage(msg.chat.id, "Unauthorized: Only admin do the payment in INR.");
+    //   return;
+    // }
+    if (msg.from.username !== adminUser && msg.from.username !== developer) {
       bot.sendMessage(msg.chat.id, "Unauthorized: Only admin do the payment in INR.");
       return;
     }
