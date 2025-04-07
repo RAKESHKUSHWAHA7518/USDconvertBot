@@ -1252,7 +1252,7 @@ async function paidHandler(bot, msg, match) {
     // Only allow admin to use explicit order IDs.
     const adminUser = "cabal_leader"; // Adjust as needed
     if (msg.from.username !== adminUser) {
-      bot.sendMessage(msg.chat.id, "Unauthorized: Only admin can specify an order ID.");
+      bot.sendMessage(msg.chat.id, "Unauthorized: Only admin do the payment in INR.");
       return;
     }
     orderId = tokens[1];
