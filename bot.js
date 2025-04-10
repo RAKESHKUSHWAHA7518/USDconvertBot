@@ -121,18 +121,29 @@ module.exports = (app) => {
       // cert: fs.readFileSync(SSL_CERT_PATH),
     }
   });
-console.log(bot);
+ 
 
   // register the webhook endpoint with Telegram
-  bot.setWebHook(`${WEBHOOK_URL}/telegram-webhook`, {
+  bot.setWebHook(`${WEBHOOK_URL}`, {
     secret_token: SECRET_TOKEN
   }).then(() => {
-    console.log('✅ Telegram webhook set to:', `${WEBHOOK_URL}/telegram-webhook`);
+    console.log('✅ Telegram webhook set to:', `${WEBHOOK_URL}`);
   });
+
+  // after bot.setWebHook(...)
+  bot.getWebHookInfo()
+  .then(info => {
+    console.log('✅ Webhook info:', info);
+  })
+  .catch(err => {
+    console.error('❌ Failed to get webhook info:', err);
+  });
+
 
   // bind the webhook route to your express app
   app.post('/telegram-webhook', (req, res) => {
     bot.processUpdate(req.body);
+    res.send('Welcome to the Trading Bot Homepage!');
     res.sendStatus(200); // must respond quickly
   });
 
