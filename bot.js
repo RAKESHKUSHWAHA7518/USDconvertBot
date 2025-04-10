@@ -124,10 +124,10 @@ module.exports = (app) => {
  
 
   // register the webhook endpoint with Telegram
-  bot.setWebHook(`${WEBHOOK_URL}`, {
-    secret_token: SECRET_TOKEN
+  bot.setWebHook(`${WEBHOOK_URL}/telegram-webhook`, {
+    // secret_token: SECRET_TOKEN
   }).then(() => {
-    console.log('✅ Telegram webhook set to:', `${WEBHOOK_URL}`);
+    console.log('✅ Telegram webhook set to:', `${WEBHOOK_URL}/telegram-webhook`);
   });
 
   // after bot.setWebHook(...)
@@ -141,7 +141,7 @@ module.exports = (app) => {
 
 
   // bind the webhook route to your express app
-  app.post('/webhook', (req, res) => {
+  app.post('/telegram-webhook', (req, res) => {
     bot.processUpdate(req.body);
     res.send('Welcome to the Trading Bot Homepage!');
     res.sendStatus(200); // must respond quickly
