@@ -125,7 +125,7 @@ module.exports = (app) => {
 
   // register the webhook endpoint with Telegram
   bot.setWebHook(`${WEBHOOK_URL}/telegram-webhook`, {
-    // secret_token: SECRET_TOKEN
+    secret_token: SECRET_TOKEN
   }).then(() => {
     console.log('✅ Telegram webhook set to:', `${WEBHOOK_URL}/telegram-webhook`);
   });
