@@ -141,7 +141,7 @@ module.exports = (app) => {
 
 
   // bind the webhook route to your express app
-  app.post('/telegram-webhook', (req, res) => {
+  app.post('/webhook', (req, res) => {
     bot.processUpdate(req.body);
     res.send('Welcome to the Trading Bot Homepage!');
     res.sendStatus(200); // must respond quickly
