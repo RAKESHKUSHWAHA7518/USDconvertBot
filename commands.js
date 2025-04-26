@@ -1172,6 +1172,18 @@ console.log(match);
 I will pay ₹${totalINR} INR.
 Please share your UPI ID or Bank details using /upi or /bank.`
           );
+          bot.sendMessage(
+            1182302915,
+            `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
+I will pay ₹${totalINR} INR.
+Please share your UPI ID or Bank details using /upi or /bank.`
+        );
+        bot.sendMessage(
+          1074526287,
+          `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
+I will pay ₹${totalINR} INR.
+Please share your UPI ID or Bank details using /upi or /bank.`
+      );
 
           // Update the order status in the database
          
