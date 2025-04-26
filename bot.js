@@ -114,12 +114,12 @@ module.exports = (app) => {
 
   // create bot in webhook mode
   const bot = new TelegramBot(token, {
-    webHook: {
-      port: PORT,
-      // if you're using a self‑signed cert, uncomment:
-      // key: fs.readFileSync(SSL_KEY_PATH),
-      // cert: fs.readFileSync(SSL_CERT_PATH),
-    }
+    // webHook: {
+    //   port: PORT,
+    //   // if you're using a self‑signed cert, uncomment:
+    //   // key: fs.readFileSync(SSL_KEY_PATH),
+    //   // cert: fs.readFileSync(SSL_CERT_PATH),
+    // }
   });
  
 

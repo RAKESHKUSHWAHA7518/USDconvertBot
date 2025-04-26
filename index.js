@@ -42,6 +42,10 @@ app.get('/status', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-app.listen(port, () => {
-  console.log(`Express server is listening on port ${port}`);
+// app.listen(port, () => {
+//   console.log(`Express server is listening on port ${port}`);
+// });
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Express server listening on http://0.0.0.0:${port}`);
 });
