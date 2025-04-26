@@ -34,7 +34,7 @@ require('./bot')(app);
 
 // simple homepage
 app.get('/', (req, res) => {
-  res.send('Welcome to the Trading Bot Homepage!');
+  res.send('Welcome to the Trading Bot Homepage ii!');
 });
 
 // example status endpoint
