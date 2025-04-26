@@ -363,7 +363,7 @@ async function updateOrder(chatId, userId,orderNumber, updateFields) {
 async function getOrder(chatId, userId, orderNumber ) {
   const compositeKey = getCompositeKey(chatId, userId,orderNumber);
   try {
-    const order = await Ordersdetails.findOne({ compositeKey });
+    const order = await Ordersdetails.findOne({ orderNumber });
     console.log(order);
     
     if (!order) {
