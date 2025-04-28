@@ -341,10 +341,11 @@ console.log(sellOrder);
 }
 
 async function updateOrder(chatId, userId,orderNumber, updateFields) {
+  console.log(updateFields);
   const compositeKey = getCompositeKey(chatId, userId,orderNumber);
   try {
     const updatedOrder = await Ordersdetails.findOneAndUpdate(
-      { compositeKey },
+      { orderNumber },
       { $set: updateFields },
       { new: true } // returns the updated document
     );

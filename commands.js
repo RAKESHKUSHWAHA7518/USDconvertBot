@@ -1181,7 +1181,7 @@ Please share your UPI ID or Bank details using /upi or /bank.`
         bot.sendMessage(
           1074526287,
           `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
-I will pay ₹${totalINR} INR.
+you will pay ₹${totalINR} INR.
 Please share your UPI ID or Bank details using /upi or /bank.`
       );
 
@@ -1292,7 +1292,7 @@ console.log("sffg",orderId);
   // const orderDetails = await getOrderDetails(orderId);
   const order = await getOrder(msg.chat.id, msg.from.id, orderId);
 console.log("ttt",order);
-
+ const number = order?.compositeKey.split('_')[0]
 if(!order) {
   bot.sendMessage(msg.chat.id, `Order #${orderId} not found.`);
   return;
@@ -1321,13 +1321,22 @@ console.log(order.amountPaid);
   if (order?.amountPaid < order?.totalAmount) {
     const remaining = order?.totalAmount - order?.amountPaid;
     const updateFields = { status: 'Incompleted', amountPaid:order.amountPaid };
-   await  updateOrder(msg.chat.id,msg.from.id,orderId, updateFields)
+  const rr=  await  updateOrder(msg.chat.id,msg.from.id,orderId, updateFields)
+   console.log("yy",rr);
+   
     bot.sendMessage(
       msg.chat.id,
       `✅ Order #${order.orderNumber} Partial payment detected.
 You have paid ₹${order.amountPaid} out of ₹${order.totalAmount}.
 Please pay the remaining ₹${remaining}.`
     );
+    bot.sendMessage(
+      number,
+      `✅ Order #${order.orderNumber} Partial payment detected.
+I have paid ₹${order.amountPaid} out of ₹${order.totalAmount}.
+I will pay the remaining ₹${remaining}.`
+    );
+     
   } else if (order.amountPaid === order.totalAmount) {
     // markOrderStep(orderId, "INR_paid");
     const updateFields = { status: 'completed', amountPaid:order.amountPaid };
@@ -1336,6 +1345,10 @@ Please pay the remaining ₹${remaining}.`
       msg.chat.id,
       `✅ Order #${order.orderNumber} Payment complete. Waiting for seller confirmation of INR receipt. /done`
     );
+    bot.sendMessage(
+      number,
+      `✅ Order #${order.orderNumber} Payment complete. Waiting for your confirmation of INR receipt. /done`
+    );
   } else {
     const extra = order.amountPaid - order.totalAmount;
     const updateFields = { status: 'Extra', amountPaid:order.amountPaid };
@@ -1343,6 +1356,10 @@ Please pay the remaining ₹${remaining}.`
     bot.sendMessage(
       msg.chat.id,
       `✅ Order #${order.orderNumber} Payment complete with ₹${extra} extra paid. Waiting for seller confirmation. /done`
+    );
+    bot.sendMessage(
+      number,
+      `✅ Order #${order.orderNumber} Payment complete with ₹${extra} extra paid. Waiting for your confirmation. /done`
     );
   }
 }
@@ -1437,12 +1454,24 @@ async function upiHandler(bot, msg, match) {
     );
     return;
   }
-
+  const totalINR = orderDetails.amount * orderDetails.price;
   // Process and store the UPI ID as needed.
   bot.sendMessage(
     msg.chat.id,
     `✅ Order #${orderDetails.orderNumber} Received your UPI ID: ${upiId}`
   );
+  bot.sendMessage(
+    1182302915,
+    `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
+You will pay ₹${totalINR} INR.
+The   UPI ID is ${upiId} `
+);
+bot.sendMessage(
+  1074526287,
+  `✅ Order #${orderDetails.orderNumber} for ${orderDetails.amount} USDT TRC20 verified.
+you will pay ₹${totalINR} INR.
+ The   UPI ID is ${upiId} `
+);
 }
 
 // Handler for processing bank details.
