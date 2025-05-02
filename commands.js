@@ -1307,6 +1307,15 @@ if(!order) {
   }
 console.log(orders);
 
+
+  // if already fully paid or over‑paid, refuse any further /paid commands
+  if (order.status === 'completed' || order.status === 'Extra') {
+    return bot.sendMessage(
+      msg.chat.id,
+      `⚠️ Order #${order.orderNumber} is already ${order.status}. No further payments can be accepted.`
+    );
+  }
+
   // if (!orderId || !orders[orderId]) {
   //   bot.sendMessage(msg.chat.id, "Order not found.");
   //   return;
@@ -1443,6 +1452,16 @@ async function upiHandler(bot, msg, match) {
   // const orderId = selectedOrders[compositeKey];
   // const orderDetails = await getOrderDetails(orderId);
   console.log(orderDetails);
+
+  const order = await getOrder(msg.chat.id, msg.from.id, orderNumber);
+console.log("ttt",order);
+
+if (order.status === 'completed' || order.status === 'Extra') {
+  return bot.sendMessage(
+    msg.chat.id,
+    `⚠️ Order #${order.orderNumber} is already ${order.status}. No further upi can be changed.`
+  );
+}
   
   const upiId = tokens[2];
  console.log(upiId);
