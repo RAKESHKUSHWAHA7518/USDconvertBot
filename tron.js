@@ -196,7 +196,7 @@ async function checkConfirmationStatus(txId) {
   }
 }
 
-async function verifyTronTransaction(txId) {
+async function verifyTronTransaction(txId,expectedAmount) {
   const transaction= await getTransaction(txId);
   console.log("ggdfgdg",transaction);
   
@@ -210,6 +210,8 @@ async function verifyTronTransaction(txId) {
     const receipt = await tronWeb.trx.getTransactionInfo(txId);
     console.log('Transaction Receipt:', receipt);
 
+
+
     // Extract sender & receiver addresses from transaction data
     const contractData = transaction.raw_data.contract[0].parameter.value;
     console.log('Contract Data:', contractData);
@@ -222,6 +224,31 @@ async function verifyTronTransaction(txId) {
 
     console.log(`🔍 From: ${fromAddress}`);
     console.log(`📩 To: ${toAddress}`);
+
+     const amount= await axios.get(`https://api.trongrid.io/v1/transactions/${txId}/events`)
+        console.log("amount",  JSON.stringify(amount?.data, null, 2) );
+        
+        const value=amount.data.data[0].result.value;
+    console.log(value);
+    
+        console.log(`🔢 Raw on-chain amount: ${value}`);
+        const usdt = Number(value) / 1e6;
+        console.log(`💱 Human-readable amount:  ${usdt} USDT`);
+    
+        // 3. Verify amount matches expectation
+        // if (usdt === expectedAmount) {
+        //   console.log(`✅ Amount matches expected ${expectedAmount} USDT.`);
+        // } else {
+        //   console.log(`❌ Amount mismatch: expected ${expectedAmount} USDT but got ${usdt} USDT.`);
+        // }
+    
+        if (usdt !== expectedAmount) {
+          console.log(`❌ Amount mismatch: expected ${expectedAmount} USDT but got ${usdt} USDT.`);
+          console.log('❌ Payment not successful due to amount mismatch.');
+          return;
+        } else {
+          console.log(`✅ Amount matches expected ${expectedAmount} USDT.`);
+        }
 
     // Check transaction status from receipt
     const isSuccessful =

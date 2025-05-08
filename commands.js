@@ -1158,7 +1158,7 @@ console.log(match);
         return;
     }
       // Verify the transaction using the provided token
-      const verification = await verifyTronTransaction(token);
+      const verification = await verifyTronTransaction(token,orderDetails.amount);
 
       if (verification) {
           const totalINR = orderDetails.amount * orderDetails.price;
