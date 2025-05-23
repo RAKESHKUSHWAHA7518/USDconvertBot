@@ -968,7 +968,8 @@ Available commands:
  
 /upi <upi_id>        - Submit your UPI ID
 /bank <account_number> <IFSC> <branch> <name> - Submit your bank details
-/done  done with  <ordernumber >  for conformation payment `;
+/done  done with  <ordernumber >  for conformation payment 
+/support  support commond under working`;
   bot.sendMessage(msg.chat.id, welcomeText);
 }
 
