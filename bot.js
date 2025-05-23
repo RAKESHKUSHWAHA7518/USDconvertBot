@@ -151,7 +151,7 @@ module.exports = (app) => {
   bot.onText(/\/start/, startHandler.bind(null, bot));
   // bot.onText(/\/buy (.+)/, buyHandler.bind(null, bot));
   bot.onText(/\/sell (.+)/, sellHandler.bind(null, bot));
-  bot.onText(/\/myhistory/, myHistoryHandler.bind(null, bot));
+  // bot.onText(/\/myhistory/, myHistoryHandler.bind(null, bot));
   bot.onText(/\/report (.+)/, reportHandler.bind(null, bot));
   bot.onText(/\/paid/, confirmHandler.bind(null, bot));
   bot.onText(/\/confirm/, paidHandler.bind(null, bot));

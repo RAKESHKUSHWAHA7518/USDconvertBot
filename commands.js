@@ -963,12 +963,12 @@ Available commands:
 
 /sell <amount>       - Accept a buy order
 /paid <hash>         - Provide transaction proof after USDT transfer
-/confirm            - Mark INR payment as complete
-/myhistory          - Show your transaction history
-/report <YYYY-MM-DD> - Get the daily report
+ 
+ 
+ 
 /upi <upi_id>        - Submit your UPI ID
 /bank <account_number> <IFSC> <branch> <name> - Submit your bank details
-  `;
+/done  done with  <ordernumber >  for conformation payment `;
   bot.sendMessage(msg.chat.id, welcomeText);
 }
 
