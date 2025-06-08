@@ -162,7 +162,8 @@ module.exports = (app) => {
   bot.onText(/\/upi (.+)/, upiHandler.bind(null, bot));
   bot.onText(/\/bank (.+)/, bankHandler.bind(null, bot));
   bot.onText(/\/setprice\s+(\d+(\.\d+)?)/, setPriceHandler.bind(null, bot));
-  bot.onText(/\/usdt\s+([Tt][a-zA-Z0-9]{33,})/, usdtHandler.bind(null, bot));
+  // bot.onText(/\/usdt\s+([Tt][a-zA-Z0-9]{33,})/, usdtHandler.bind(null, bot));
+  bot.onText(/\/usdt (.+)/, usdtHandler.bind(null, bot));
 
 
   bot.on('message', (msg) => {
