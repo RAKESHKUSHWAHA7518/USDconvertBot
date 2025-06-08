@@ -683,7 +683,8 @@ console.log(chatId);
 
 
   if (!usdtAddress) {
-    return bot.sendMessage(chatId, '❌ Please provide a valid USDT TRC20 address.\nExample:\n`/usdt TAbc123...`', { parse_mode: 'Markdown' });
+     bot.sendMessage(chatId, '❌ Please provide a valid USDT TRC20 address.\nExample:\n`/usdt TAbc123...`', { parse_mode: 'Markdown' });
+      return;
   }
 
   try {
@@ -696,7 +697,8 @@ console.log(chatId);
     // );
 console.log("Updated USDT Address:", updated);
     if (!updated) {
-      return bot.sendMessage(chatId, '❌ Failed to update USDT address. Please try again later.');
+       bot.sendMessage(chatId, '❌ Failed to update USDT address. Please try again later.');
+       return;
     }
 
     bot.sendMessage(chatId, `✅ USDT address updated:\n\`${updated?.data?.usdtAddress}\``, { parse_mode: 'Markdown' });

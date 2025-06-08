@@ -757,7 +757,7 @@ console.log(usdtAddress);
     return { usdtAddress: address?.usdtAddress || '' };
   } catch (error) {
     // res.status(500).json({ error: 'Internal Server Error' });
-    return  { error: 'Internal Server Error' };
+    return ;
   }
 };
 
