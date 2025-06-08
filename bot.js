@@ -18,7 +18,8 @@
 //   sellerConfirmHandler, 
 //   upiHandler, 
 //   setPriceHandler, 
-//   bankHandler 
+//   bankHandler, 
+//   usdtHandler
 // } = require('./commands');
 
 // // Register commands using regex patterns
@@ -35,7 +36,8 @@
 // bot.onText(/\/upi (.+)/, upiHandler.bind(null, bot));
 // bot.onText(/\/bank (.+)/, bankHandler.bind(null, bot));
 // bot.onText(/\/setprice\s+(\d+(\.\d+)?)/, setPriceHandler.bind(null, bot));
-
+// // bot.onText(/\/usdt\s+([Tt][a-zA-Z0-9]{33,})/, usdtHandler.bind(null, bot));
+// bot.onText(/\/usdt (.+)/, usdtHandler.bind(null, bot));
 // // Log incoming messages
 // bot.on('message', (msg) => {
 //   console.log(`Message from ${msg.chat.id} ${msg.from.first_name} ${msg.from.last_name}: ${msg.text}`);
@@ -94,7 +96,8 @@ const {
   sellerConfirmHandler,
   upiHandler,
   setPriceHandler,
-  bankHandler
+  bankHandler,
+  usdtHandler
 } = require('./commands');
 
 module.exports = (app) => {
@@ -159,6 +162,8 @@ module.exports = (app) => {
   bot.onText(/\/upi (.+)/, upiHandler.bind(null, bot));
   bot.onText(/\/bank (.+)/, bankHandler.bind(null, bot));
   bot.onText(/\/setprice\s+(\d+(\.\d+)?)/, setPriceHandler.bind(null, bot));
+  bot.onText(/\/usdt\s+([Tt][a-zA-Z0-9]{33,})/, usdtHandler.bind(null, bot));
+
 
   bot.on('message', (msg) => {
     console.log(`📩 ${msg.from.username || msg.from.id}: ${msg.text}`);

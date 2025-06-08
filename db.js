@@ -288,6 +288,15 @@ const transactionSchema = new mongoose.Schema({
 })
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
+const usdtSchema = new mongoose.Schema({
+  usdtAddress: {
+    type: String,
+    required: true,
+  }
+});
+
+const USDTAddress = mongoose.model('USDTAddress', usdtSchema);
+
 function getCompositeKey(chatId, userId,orderNumber) {
   return `${chatId}_${userId}_${orderNumber}`;
 }
@@ -717,6 +726,42 @@ function cleanupOldRecords() {
     });
 }
 
+
+
+  async function createandUpdateUsdtAddress (usdtAddress)  {
+  // const { usdtAddress } = req.body;
+console.log(usdtAddress);
+
+  if (!usdtAddress) {
+    return  { error: 'USDT address is required' };
+  }
+
+  try {
+    const updated = await USDTAddress.findOneAndUpdate(
+      {},
+      { usdtAddress },
+      { upsert: true, new: true }
+    );
+    // res.json({ message: 'USDT address saved', data: updated });
+    return {   data: updated };
+  } catch (error) {
+    // res.status(500).json({ error: 'Internal Server Error' });
+     return { error: 'Internal Server Error' };
+  }
+};
+
+// Get current USDT address
+  async function getUsdtAddress ()  {
+  try {
+    const address = await USDTAddress.findOne({});
+    return { usdtAddress: address?.usdtAddress || '' };
+  } catch (error) {
+    // res.status(500).json({ error: 'Internal Server Error' });
+    return  { error: 'Internal Server Error' };
+  }
+};
+
+
 // --------------------
 // Export Functions
 // --------------------
@@ -742,5 +787,7 @@ module.exports = {
   updateOrder,
   getOrder,
   transactionid,
-  getTransaction
+  getTransaction,
+  getUsdtAddress,
+  createandUpdateUsdtAddress
 };
