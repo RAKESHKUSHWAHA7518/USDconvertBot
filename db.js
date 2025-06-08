@@ -733,7 +733,7 @@ function cleanupOldRecords() {
 console.log(usdtAddress);
 
   if (!usdtAddress) {
-    return  { error: 'USDT address is required' };
+    return   null;;
   }
 
   try {
@@ -746,7 +746,7 @@ console.log(usdtAddress);
     return {   data: updated };
   } catch (error) {
     // res.status(500).json({ error: 'Internal Server Error' });
-     return { error: 'Internal Server Error' };
+     return  null;
   }
 };
 

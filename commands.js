@@ -680,7 +680,7 @@ const usdtHandler = async (bot, msg, match) => {
   const usdtAddress = match[1]; // captured group
 console.log(usdtAddress);
 console.log(chatId);
-
+ bot.sendMessage(chatId, '❌ Please provide a valid USDT TRC20 address.\nExample:\n`/usdt TAbc123...`', { parse_mode: 'Markdown' });
 
   if (!usdtAddress) {
      bot.sendMessage(chatId, '❌ Please provide a valid USDT TRC20 address.\nExample:\n`/usdt TAbc123...`', { parse_mode: 'Markdown' });
@@ -695,12 +695,13 @@ console.log(chatId);
     //   { usdtAddress },
     //   { upsert: true, new: true }
     // );
+     bot.sendMessage(chatId, ' Updated USDT Address:', { parse_mode: 'Markdown' });
 console.log("Updated USDT Address:", updated);
     if (!updated) {
        bot.sendMessage(chatId, '❌ Failed to update USDT address. Please try again later.');
        return;
     }
-
+bot.sendMessage(chatId, ' Updated USDT Address:1', { parse_mode: 'Markdown' });
     bot.sendMessage(chatId, `✅ USDT address updated:\n\`${updated?.data?.usdtAddress}\``, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error(error);
