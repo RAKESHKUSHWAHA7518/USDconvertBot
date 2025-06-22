@@ -606,6 +606,7 @@ async function bankHandler(bot, msg, match) {
   const tokens = match.input.split(' ').filter(token => token.trim() !== '');
   const orderNumber = tokens[1];
   const orderDetails = await getOrderByCompositeKey(msg.chat.id, msg.from.id,orderNumber);
+   console.log(tokens);
    
   
   if(!orderDetails) {
@@ -622,10 +623,10 @@ async function bankHandler(bot, msg, match) {
     return;
   }
   const bankDetails = {
-    account_number: args[0],
-    IFSC: args[1],
-    branch: args[2],
-    name: args.slice(3).join(' ') // Joins remaining arguments as the name.
+    account_number:  tokens[2],
+    IFSC: tokens[3],
+    branch: tokens[4],
+    name: tokens.slice(5).join(' ') // Joins remaining arguments as the name.
   };
 
   bot.sendMessage(
